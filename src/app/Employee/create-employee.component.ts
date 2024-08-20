@@ -24,16 +24,20 @@ required: any;
     });
   }
 
+  logKeyValuePairs(group: FormGroup):void {
+    Object.keys(group.controls).forEach((key:string) => {
+      const abstractControl = group.get(key);
+
+      if(abstractControl instanceof FormGroup) {
+        this.logKeyValuePairs(abstractControl);
+        abstractControl?.disable();
+      } else {
+        abstractControl?.markAsDirty();
+      }
+    });
+  }
   onLoadData():void {
-    this.employeeForm.patchValue({
-      fullName: 'Mahith',
-      email:'mahith@gmail.com',
-      skills: ({
-        skillName : 'Angular',
-        experienceInYears : '2',
-        proficiency: 'advanced'
-    })
-  })
+  this.logKeyValuePairs(this.employeeForm);
    }
 
   onSubmit(): void {
