@@ -21,7 +21,9 @@ validationMessages:any = {
   'email': {
     'required': 'Email is required'
   },
-
+  'phone': {
+    'required': 'Phone is required'
+  },
     'skillName' :{
       'required':'Skill Name is required'
     },
@@ -38,6 +40,7 @@ validationMessages:any = {
 formErrors: any = {
   'fullName' : '',
   'email' : '',
+  'phone' : '',
   'skillName' : '',
   'experienceInYears' : '',
   'proficiency' : '',
@@ -48,7 +51,9 @@ formErrors: any = {
   ngOnInit() {
     this.employeeForm = this.fb.group({
       fullName:['',[Validators.required, Validators.minLength(2) , Validators.maxLength(10)]],
+      contactprefernce:['email'],
       email:['', Validators.required],
+      phone : [''],
       skills: this.fb.group({
         skillName :['', Validators.required],
         experienceInYears:['', Validators.required],
@@ -56,9 +61,22 @@ formErrors: any = {
       })
     });
 
+    this.employeeForm.get('contactprefernce')?.valueChanges.subscribe((data:string)=> {
+      this.OnContactPreferenceChange(data);
+    });
     this.employeeForm.valueChanges.subscribe((data)=> {
       this.logValidationErrors(this.employeeForm)
     });
+  }
+
+  OnContactPreferenceChange(selectedvalue:string) {
+    const phonecontrol= this.employeeForm.get('phone');
+    if (selectedvalue === 'phone') {
+      phonecontrol?.setValidators(Validators.required);
+    } else {
+      phonecontrol?.clearValidators();
+    }
+    phonecontrol?.updateValueAndValidity();
   }
 
   logValidationErrors(group: FormGroup = this.employeeForm):void {
