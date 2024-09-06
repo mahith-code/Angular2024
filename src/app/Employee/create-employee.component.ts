@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { FormGroup, FormControl, ReactiveFormsModule, FormBuilder, Validators} from '@angular/forms';
+import { FormGroup, FormControl, ReactiveFormsModule, FormBuilder, Validators, AbstractControl} from '@angular/forms';
+import { retry } from 'rxjs';
 
 @Component({
   selector: 'app-create-employee',
@@ -19,7 +20,8 @@ validationMessages:any = {
     'maxlength' : 'Full name must be less than 10 characters'
   },
   'email': {
-    'required': 'Email is required'
+    'required': 'Email is required',
+    'emailDomain': 'Email domain should be quickfms.com'
   },
   'phone': {
     'required': 'Phone is required'
@@ -52,7 +54,7 @@ formErrors: any = {
     this.employeeForm = this.fb.group({
       fullName:['',[Validators.required, Validators.minLength(2) , Validators.maxLength(10)]],
       contactprefernce:['email'],
-      email:['', Validators.required],
+      email:['', [Validators.required, emailDomain('quickfms.com')]],
       phone : [''],
       skills: this.fb.group({
         skillName :['', Validators.required],
@@ -93,7 +95,7 @@ formErrors: any = {
 
           for(const errorKey in abstractControl.errors) {
             if(errorKey) {
-              this.formErrors[key] += messages[errorKey] + '';
+              this.formErrors[key] += messages[errorKey] + ' ';
             }
           };
         }
@@ -114,3 +116,16 @@ formErrors: any = {
   }
 
 }
+
+ function emailDomain(domainName: string) {
+ return (control: AbstractControl): {[key:string]: any} | null => {
+  const email : string = control.value;
+  const domain = email.substring(email.lastIndexOf('@') +1);
+   if (email === '' || domain.toLocaleLowerCase() === domainName.toLocaleLowerCase()) {
+    return null;
+   } else {
+      return {'emailDomain' : true}
+    }
+   };
+
+  }
