@@ -6,6 +6,7 @@ import {
   FormBuilder,
   Validators,
   AbstractControl,
+  FormArray,
 } from '@angular/forms';
 import { CustomValidators } from '../shared/custom.validators';
 
@@ -83,11 +84,9 @@ export class CreateEmployeeComponent implements OnInit {
       },{validator: matchEmail} ),
 
       phone: [''],
-      skills: this.fb.group({
-        skillName: ['', Validators.required],
-        experienceInYears: ['', Validators.required],
-        proficiency: ['', Validators.required],
-      }),
+      skills: this.fb.array([
+        this.addSkillFormGroup()
+      ]),
     });
 
     this.employeeForm
@@ -98,6 +97,20 @@ export class CreateEmployeeComponent implements OnInit {
     this.employeeForm.valueChanges.subscribe((data) => {
       this.logValidationErrors(this.employeeForm);
     });
+  }
+
+  addSkillButtonClick():void {
+    (<FormArray>this.employeeForm.get('skills')).push(this.addSkillFormGroup());
+  }
+  get skillsFormArray() {
+    return this.employeeForm.get('skills') as FormArray;
+  }
+  addSkillFormGroup():FormGroup {
+   return this.fb.group({
+      skillName: ['', Validators.required],
+      experienceInYears: ['', Validators.required],
+      proficiency: ['', Validators.required],
+    })
   }
 
   OnContactPreferenceChange(selectedvalue: string) {
@@ -130,19 +143,37 @@ export class CreateEmployeeComponent implements OnInit {
 
       if (abstractControl instanceof FormGroup) {
         this.logValidationErrors(abstractControl);
-      } 
+      }
+      if (abstractControl instanceof FormArray) {
+        for(const control of abstractControl.controls) {
+          if (control instanceof FormGroup) {
+            this.logValidationErrors(control);
+          }
+        }
+
+      }
     });
   }
   onLoadData(): void {
-    // this.logValidationErrors(this.employeeForm);
-    // console.log(this.formErrors);
+    const formArray1= this.fb.array([
+      new FormControl('mahith',Validators.required),
+      new FormControl('IT',Validators.required),
+      new FormControl('',Validators.required)
+    ]);
+    const formGroup= this.fb.group([
+      new FormControl('mahith',Validators.required),
+      new FormControl('IT',Validators.required),
+      new FormControl('',Validators.required)
+    ]);
+    console.log(formArray1);
+    console.log(formGroup);
   }
 
   onSubmit(): void {
-    console.log(this.employeeForm.touched);
-    console.log(this.employeeForm.value);
-    console.log(this.employeeForm.controls['fullName'].touched);
-    console.log(this.employeeForm.get('fullName')?.value);
+    // console.log(this.employeeForm.touched);
+    // console.log(this.employeeForm.value);
+    // console.log(this.employeeForm.controls['fullName'].touched);
+    // console.log(this.employeeForm.get('fullName')?.value);
   }
 }
 
