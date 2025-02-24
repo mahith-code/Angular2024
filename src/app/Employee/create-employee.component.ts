@@ -9,7 +9,10 @@ import {
   FormArray,
 } from '@angular/forms';
 import { CustomValidators } from '../shared/custom.validators';
-
+import { ActivatedRoute } from '@angular/router';
+import { EmployeeService } from './employee.service';
+import { ISkill } from './ISkill';
+import { IEmployee } from './IEmployee';
 @Component({
   selector: 'app-create-employee',
   templateUrl: './create-employee.component.html',
@@ -52,7 +55,10 @@ export class CreateEmployeeComponent implements OnInit {
 
   };
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,
+              private route:ActivatedRoute,
+              private employeeService:EmployeeService
+  ) {}
 
   ngOnInit() {
     this.employeeForm = this.fb.group({
@@ -87,8 +93,34 @@ export class CreateEmployeeComponent implements OnInit {
     this.employeeForm.valueChanges.subscribe((data) => {
       this.logValidationErrors(this.employeeForm);
     });
+
+    this.route.paramMap.subscribe(params => {
+     const empId = +(params.get('id') ?? 0);;//typecasting to number
+      if(empId) {
+        this.getEmployee(empId);
+      }
+    }
+
+    );
   }
 
+  getEmployee(id:number){
+    this.employeeService.getEmployee(id).subscribe(
+      (employee:IEmployee) => this.editEmployee(employee),
+      (err:any) => console.log(err)
+    );
+  }
+  editEmployee(employee:IEmployee) {
+    this.employeeForm.patchValue({
+      fullName : employee.fullName,
+      contactPrefernce: employee.contactPreference,
+      emailGroup : {
+        email:employee.email,
+        confirmEmail:employee.email
+      },
+      phone:employee.phone
+    });
+  }
   addSkillButtonClick():void {
     (<FormArray>this.employeeForm.get('skills')).push(this.addSkillFormGroup());
   }
@@ -124,7 +156,9 @@ export class CreateEmployeeComponent implements OnInit {
       if (
         abstractControl &&
         !abstractControl.valid &&
-        (abstractControl.touched || abstractControl.dirty)
+        (abstractControl.touched || abstractControl.dirty ||
+          abstractControl.value !== ''
+        )
       ) {
         const messages = this.validationMessages[key];
 
@@ -168,7 +202,8 @@ function matchEmail(group:AbstractControl): { [key:string]:any} | null {
   const emailControl = group.get('email');
   const ConfirmemailControl = group.get('confirmEmail');
 
-  if (emailControl?.value === ConfirmemailControl?.value || ConfirmemailControl?.pristine ){
+  if (emailControl?.value === ConfirmemailControl?.value
+    || (ConfirmemailControl?.pristine && ConfirmemailControl.value === '')){
     return null
   } else {
     return {'emailMismatch': true}
